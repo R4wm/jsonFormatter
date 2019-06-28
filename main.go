@@ -30,49 +30,51 @@ func printUsage() {
 func main() {
 
 	filePath = os.Args[1:]
-
 	if len(filePath) == 0 {
 		printUsage()
 	}
 
-	// Validate the file.
-	sourceFileStat, err := os.Stat(filePath[0])
-	if err != nil {
-		panic(err)
-	}
+	for _, jsonFile := range filePath {
 
-	if !sourceFileStat.Mode().IsRegular() {
-		fmt.Errorf("%s is not a regular file.", filePath[0])
-	}
+		// Validate the file.
+		sourceFileStat, err := os.Stat(jsonFile)
+		if err != nil {
+			panic(err)
+		}
 
-	fileContent, err = ioutil.ReadFile(filePath[0])
-	if err != nil {
-		panic(err)
-	}
+		if !sourceFileStat.Mode().IsRegular() {
+			fmt.Errorf("%s is not a regular file.", jsonFile)
+		}
 
-	if len(fileContent) == 0 {
-		panic(fmt.Errorf("%s is empty.", filePath[0]))
-	}
+		fileContent, err = ioutil.ReadFile(jsonFile)
+		if err != nil {
+			panic(err)
+		}
 
-	// Unmarshal file
-	if err := json.Unmarshal(fileContent, &dat); err != nil {
-		fmt.Println("Hey dawg, is that even json??")
-		panic(err)
-	}
+		if len(fileContent) == 0 {
+			panic(fmt.Errorf("%s is empty.", jsonFile))
+		}
 
-	// move original file to /tmp
-	newPath = filepath.Join("/tmp", filePath[0])
-	os.Rename(filePath[0], newPath)
+		// Unmarshal file
+		if err := json.Unmarshal(fileContent, &dat); err != nil {
+			fmt.Println("Hey dawg, is that even json??")
+			panic(err)
+		}
 
-	// Write the file (json formatted)
-	jsonPretty, err = json.MarshalIndent(dat, "", "  ")
-	if err != nil {
-		panic(err)
-	}
+		// move original file to /tmp
+		newPath = filepath.Join("/tmp", jsonFile)
+		os.Rename(jsonFile, newPath)
 
-	// TODO Change perms to match original file perms.
-	if err := ioutil.WriteFile(filePath[0], jsonPretty, 0644); err != nil {
-		panic(err)
+		// Write the file (json formatted)
+		jsonPretty, err = json.MarshalIndent(dat, "", "  ")
+		if err != nil {
+			panic(err)
+		}
+
+		// TODO Change perms to match original file perms.
+		if err := ioutil.WriteFile(jsonFile, jsonPretty, 0644); err != nil {
+			panic(err)
+		}
 	}
 
 }
